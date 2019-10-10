@@ -1,10 +1,10 @@
 import React, {useState, useEffect} from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
-import {Text, Icon, List, ListItem, Left, Right} from 'native-base';
+import { FlatList, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Home(props) {
 
-    const [posts, setPosts] = useState(null);
+    const [posts, setPosts] = useState([]);
 
     useEffect( () => {
         getPosts();
@@ -16,30 +16,22 @@ export default function Home(props) {
         setPosts(data.posts);
     }
 
-    function viewPost(ev) {
-        
+    function ListItem(post) {
+        return (
+            <TouchableOpacity style={styles.listItem} onPress={() => {props.navigation.navigate("Episode", {content: post.html, title: post.title})}}>
+                <Text>{post.title}</Text>
+                <TouchableOpacity>
+                    <Ionicons style={styles.downloadIcon} name="ios-add" size={25}/>
+                </TouchableOpacity>
+            </TouchableOpacity>
+        );
     }
 
   return (
-    <ScrollView style={styles.container}>
-      <List>
-          {posts && posts.map( (post)=>(
-                <ListItem key={post.id} onPress={() => {
-                    props.navigation.navigate("Episode", {
-                        content: post.html,
-                        title: post.title
-                    });
-                }}>
-                    <Left>
-                        <Text>{post.title}</Text>
-                    </Left>
-                    <Right>
-                        <Icon name="arrow-forward" />
-                    </Right>
-                </ListItem>
-            )) }
-      </List>
-    </ScrollView>
+    <View style={styles.container}>
+        <FlatList style={styles.list} data={posts} renderItem={({item}) => <ListItem title={item.title} html={item.html} />} keyExtractor={item => item.id}/>
+    </View>
+
   );
 }
 
@@ -50,11 +42,30 @@ const styles = StyleSheet.create({
     // alignItems: 'center',
     // justifyContent: 'center',
   },
+  listItem: {
+    borderRadius: 4,
+    borderRightWidth: 0,
+    borderLeftWidth: 0,
+    borderStartColor: "red",
+    borderWidth: 0.5,
+    borderColor: '#d6d7da',
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  downloadIcon: {
+      paddingHorizontal: 20,
+      paddingVertical: 20
+  },
+  list: {
+      marginLeft: 20
+  }
 });
 
 // import React from 'react';
 // import { StyleSheet, View } from 'react-native';
-// import {Text, List, ListItem, Left, Right} from 'native-base';
+// import {Text, Icon, List, ListItem, Left, Right} from 'native-base';
 // import { Ionicons } from '@expo/vector-icons';
 
 // export default function Home() {

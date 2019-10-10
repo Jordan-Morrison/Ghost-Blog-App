@@ -1,4 +1,5 @@
 import React from 'react';
+import {View, Text} from 'react-native';
 import {WebView} from 'react-native-webview';
 
 import CSS from './css';
@@ -6,10 +7,9 @@ import CSS from './css';
 export default function Episode(props) {
 
   return (
-        <WebView
-    originWhitelist={['*']}
-    source={{ html: `${CSS} ${props.navigation.getParam("content")}` }}
-    />
+        <View>
+            <Text>Hello World</Text>
+        </View>
   );
 }
 

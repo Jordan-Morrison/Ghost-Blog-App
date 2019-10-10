@@ -88,6 +88,8 @@ const CSS = `
       
       html {
         font-size: 12px;
+        padding-top: 20px;
+        padding-bottom: 50px;
       }
       
       @media screen and (min-width: 32rem) and (max-width: 48rem) {
