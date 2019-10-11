@@ -41,10 +41,8 @@ export default function Home(props) {
             });
             if (downloaded.uri){
                 // imagesToDownload[imagesToDownload.indexOf(image)].path = downloaded.uri;
-
-                html = html.split(image.url).join("data:image/gif;base64, " + await FileSystem.readAsStringAsync(downloaded.uri, {
-                    encoding: FileSystem.EncodingType.Base64
-                }));
+                console.log("IMAGE URI: ", downloaded.uri);
+                html = html.split(image.url).join("./" + fileName);
 
             }
         }
@@ -52,11 +50,15 @@ export default function Home(props) {
         console.log(html);
         console.log(imagesToDownload);
 
+        console.log(decodeURI(FileSystem.documentDirectory));
+
         FileSystem.writeAsStringAsync(`${FileSystem.documentDirectory}post.html`, html).catch(err => {
             console.error(err);
         });
 
-        props.navigation.navigate("Episode", {content: await FileSystem.readAsStringAsync(`${FileSystem.documentDirectory}post.html`), title: "PLZ WORK"})
+        console.log(FileSystem.documentDirectory + "post.html");
+
+        props.navigation.navigate("Episode", {uri: FileSystem.documentDirectory + "post.html", title: "PLZ WORK"})
 
         // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + uuid).catch(err => {
         //     console.log("Directory already exists");

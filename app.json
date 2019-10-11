@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Bus Rides",
-    "slug": "com.busrides.ghost",
+    "slug": "busrides",
     "privacy": "public",
     "sdkVersion": "35.0.0",
     "platforms": [
@@ -24,7 +24,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.busrides.ghost"
     }
   }
 }
