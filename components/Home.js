@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
 import { FlatList, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
+
+import {downloadPost} from './helpers/Downloader';
 
 export default function Home(props) {
 
@@ -15,60 +16,6 @@ export default function Home(props) {
         let data = await fetch("https://demo.ghost.io/ghost/api/v2/content/posts/?key=22444f78447824223cefc48062");
         data = await data.json();
         setPosts(data.posts);
-    }
-
-    async function downloadPost(uuid, html) {
-        let imageTagRegex = new RegExp('<img(.+?)src\s*=\s*\\"(.+?)\\"', "g");
-        
-        let imageTags = html.match(imageTagRegex);
-
-        let imagesToDownload = await imageTags.map(tag => {
-            let url = tag.match(/(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/g)[0];
-            return {
-                url: url,
-                name: url.match(/[^/\\&\?]+\.\w{3,4}(?=([\?&].*$|$))/g)[0]
-            }
-        });
-
-        imagesToDownload = [...new Set(imagesToDownload)];
-
-        for (let image in imagesToDownload){
-            image = imagesToDownload[image];
-
-            let fileName = `${imagesToDownload.indexOf(image)}-${image.name}`;
-            let downloaded = await FileSystem.downloadAsync(image.url, FileSystem.documentDirectory + fileName).catch(err => {
-                console.error(err);
-            });
-            if (downloaded.uri){
-                // imagesToDownload[imagesToDownload.indexOf(image)].path = downloaded.uri;
-                console.log("IMAGE URI: ", downloaded.uri);
-                html = html.split(image.url).join("./" + fileName);
-
-            }
-        }
-
-        console.log(html);
-        console.log(imagesToDownload);
-
-        console.log(decodeURI(FileSystem.documentDirectory));
-
-        FileSystem.writeAsStringAsync(`${FileSystem.documentDirectory}post.html`, html).catch(err => {
-            console.error(err);
-        });
-
-        console.log(FileSystem.documentDirectory + "post.html");
-
-        props.navigation.navigate("Episode", {uri: FileSystem.documentDirectory + "post.html", title: "PLZ WORK"})
-
-        // FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + uuid).catch(err => {
-        //     console.log("Directory already exists");
-        // });
-        
-        // FileSystem.writeAsStringAsync(`${FileSystem.documentDirectory}${uuid}/post.html`, html).catch(err => {
-        //     console.error(err);
-        // });
-
-        console.log(await FileSystem.readDirectoryAsync(FileSystem.documentDirectory));
     }
 
     function ListItem(post) {
@@ -94,8 +41,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    // alignItems: 'center',
-    // justifyContent: 'center',
   },
   listItem: {
     borderRadius: 4,
@@ -117,27 +62,3 @@ const styles = StyleSheet.create({
       marginLeft: 20
   }
 });
-
-// import React from 'react';
-// import { StyleSheet, View } from 'react-native';
-// import {Text, Icon, List, ListItem, Left, Right} from 'native-base';
-// import { Ionicons } from '@expo/vector-icons';
-
-// export default function Home() {
-//   return (
-//     <View style={styles.container}>
-//       <Text>Open up App.js to start working on your app!</Text>
-//       <Ionicons name="md-checkmark-circle" size={32} color="green" />
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-// });
-
