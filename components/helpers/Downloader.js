@@ -1,9 +1,10 @@
 import * as FileSystem from 'expo-file-system';
+import { getCurrentPositionAsync } from 'expo-location';
 
-export async function downloadPost(uuid, html) {
+export async function downloadPost(post) {
 
     // Sets the location for which all the post's files should be downloaded to
-    const downloadLocation = FileSystem.documentDirectory + "posts/" + uuid + "/";
+    const downloadLocation = FileSystem.documentDirectory + "posts/" + post.uuid + "/";
 
     // Creating the directories for posts and the post itself if they don't already exist
     FileSystem.makeDirectoryAsync(downloadLocation, {intermediates: true}).catch(err => {
@@ -11,7 +12,7 @@ export async function downloadPost(uuid, html) {
     });
 
     // Will receive a list of objects for all the images to be downloaded, or null if there are no images
-    let imagesToDownload = await findImages(html);
+    let imagesToDownload = await findImages(post.html);
 
     if (imagesToDownload) {
         // Downloads the images and receives an array containing the image URI's and names
@@ -19,12 +20,22 @@ export async function downloadPost(uuid, html) {
 
         // Loop through the HTML and replace the image URL with the local image URI
         downloadedImages.forEach(image => {
-            html = html.split(image.url).join("./" + image.name);
+            post.html = post.html.split(image.url).join("./" + image.name);
         });
     }
 
     // Save the html file
-    FileSystem.writeAsStringAsync(downloadLocation + "post.html", html).catch(err => {
+    FileSystem.writeAsStringAsync(downloadLocation + "post.html", post.html).catch(err => {
+        console.error(err);
+    });
+
+    // Save a JSON file with information about the post
+    FileSystem.writeAsStringAsync(downloadLocation + "post.json", JSON.stringify({
+        uuid: post.uuid,
+        title: post.title,
+        excerpt: post.excerpt,
+        url: post.url
+    })).catch(err => {
         console.error(err);
     });
 

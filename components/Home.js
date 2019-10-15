@@ -20,9 +20,9 @@ export default function Home(props) {
 
     function ListItem(post) {
         return (
-            <TouchableOpacity style={styles.listItem} onPress={() => {props.navigation.navigate("Episode", {content: post.html, title: post.title})}}>
-                <Text>{post.title}</Text>
-                <TouchableOpacity onPress={() => {downloadPost(post.uuid, post.html)}}>
+            <TouchableOpacity style={styles.listItem} onPress={() => {props.navigation.navigate("Episode", {content: post.data.html, title: post.data.title})}}>
+                <Text>{post.data.title}</Text>
+                <TouchableOpacity onPress={() => {downloadPost(post.data)}}>
                     <Ionicons style={styles.downloadIcon} name="ios-add" size={25}/>
                 </TouchableOpacity>
             </TouchableOpacity>
@@ -31,7 +31,7 @@ export default function Home(props) {
 
   return (
     <View style={styles.container}>
-        <FlatList style={styles.list} data={posts} renderItem={({item}) => <ListItem title={item.title} html={item.html} uuid={item.uuid} />} keyExtractor={item => item.uuid}/>
+        <FlatList style={styles.list} data={posts} renderItem={({item}) => <ListItem data={item} />} keyExtractor={item => item.uuid}/>
     </View>
 
   );

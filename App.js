@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import Home from './components/Home';
 import Episode from './components/Episode';
-import LocalEpisodes from './components/LocalEpisodes';
+import LocalPosts from './components/LocalPosts';
 
 const OnlineNavigator = createStackNavigator({
     Home: {
@@ -25,7 +25,7 @@ const OnlineNavigator = createStackNavigator({
 
 const OfflineNavigator = createStackNavigator({
     Saved: {
-        screen: LocalEpisodes,
+        screen: LocalPosts,
         navigationOptions: {
             title: "My Episodes"
         }
