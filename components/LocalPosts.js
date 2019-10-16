@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
 import { withNavigationFocus } from 'react-navigation';
+import Swipeout from 'react-native-swipeout';
 import * as FileSystem from 'expo-file-system';
 
 function Post(props) {
@@ -37,11 +38,32 @@ function Post(props) {
         props.navigation.navigate("Episode", {uri: uri, title: title})
     }
 
+    async function deleteLocalPost(uuid) {
+        await FileSystem.deleteAsync(FileSystem.documentDirectory + "posts/" + uuid).catch(err => {
+            console.error(err);
+            return false;
+        });
+
+        setPosts(posts.filter(post => post.uuid != uuid));
+    }
+
     function ListItem(post) {
+
+        let swipeoutButtons = [{
+            text: "Delete",
+            backgroundColor: "red",
+            onPress: () => deleteLocalPost(post.data.uuid)
+        }];
+
         return (
-            <TouchableOpacity style={styles.listItem} onPress={() => {viewLocalPost(post.data.uuid, post.data.title)}}>
-                <Text>{post.data.title}</Text>
-            </TouchableOpacity>
+            <Swipeout autoClose={true} backgroundColor="none" right={swipeoutButtons}>
+                <TouchableOpacity style={styles.listItem} onPress={() => {viewLocalPost(post.data.uuid, post.data.title)}}>
+                    <View style={{display: "flex", flexDirection: "row", position: "relative"}}>
+                        <View style={{backgroundColor: "red", width: 20, height: "100%"}}/>
+                        <Text>{post.data.title}</Text>
+                    </View>
+                </TouchableOpacity>
+            </Swipeout>
         );
     }
 
@@ -58,20 +80,20 @@ const styles = StyleSheet.create({
       backgroundColor: '#fff',
     },
     listItem: {
-      borderRadius: 4,
-      borderRightWidth: 0,
-      borderLeftWidth: 0,
-      borderStartColor: "red",
-      borderWidth: 0.5,
-      borderColor: '#d6d7da',
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingVertical: 30
+        borderRadius: 4,
+        borderRightWidth: 0,
+        borderLeftWidth: 0,
+        borderStartColor: "red",
+        borderWidth: 0.5,
+        borderColor: '#d6d7da',
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingVertical: 30
     },
     list: {
-        marginLeft: 20
+        marginLeft: 0
     }
   });
 
