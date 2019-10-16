@@ -13,7 +13,7 @@ export default function Home(props) {
     },[]);
 
     async function getPosts() {
-        let data = await fetch("https://demo.ghost.io/ghost/api/v2/content/posts/?key=22444f78447824223cefc48062");
+        let data = await fetch("http://localhost:2368/ghost/api/v2/content/posts/?key=67fee21a30c345d85f0baf9264");
         data = await data.json();
         setPosts(data.posts);
     }
