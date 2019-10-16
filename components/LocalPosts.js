@@ -1,11 +1,17 @@
-import React, {useState} from 'react';
-import {View, Text, StyleSheet, FlatList, ListItem, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
 import { withNavigationFocus } from 'react-navigation';
 import * as FileSystem from 'expo-file-system';
 
 function Post(props) {
 
     const [posts, setPosts] = useState([]);
+
+    useEffect(() => {
+        if (props.isFocused){
+            getLocalPosts();
+        }
+    },[props.isFocused]);
 
     async function getLocalPosts() {
         let postFolders = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + "posts").catch(err => {
@@ -26,13 +32,14 @@ function Post(props) {
         setPosts(postArray);
     }
 
-    if (props.isFocused){
-        getLocalPosts();
+    function viewLocalPost(uuid, title) {
+        let uri = FileSystem.documentDirectory + "posts/" + uuid + "/post.html";
+        props.navigation.navigate("Episode", {uri: uri, title: title})
     }
 
     function ListItem(post) {
         return (
-            <TouchableOpacity style={styles.listItem} onPress={() => {props.navigation.navigate("Episode", {content: post.data.html, title: post.data.title})}}>
+            <TouchableOpacity style={styles.listItem} onPress={() => {viewLocalPost(post.data.uuid, post.data.title)}}>
                 <Text>{post.data.title}</Text>
             </TouchableOpacity>
         );
@@ -61,15 +68,11 @@ const styles = StyleSheet.create({
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingVertical: 20
+      paddingVertical: 30
     },
     list: {
         marginLeft: 20
     }
   });
-
-Post.navigationOptions = props => ({
-    title: props.navigation.getParam("title")
-});
 
 export default withNavigationFocus(Post);
