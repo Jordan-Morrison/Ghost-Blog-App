@@ -1,5 +1,4 @@
 import * as FileSystem from 'expo-file-system';
-import { getCurrentPositionAsync } from 'expo-location';
 
 export async function downloadPost(post) {
 
@@ -10,6 +9,19 @@ export async function downloadPost(post) {
     FileSystem.makeDirectoryAsync(downloadLocation, {intermediates: true}).catch(err => {
         console.error(err);
     });
+
+    let videosToDownload = await findVideos(post.html);
+
+    if (videosToDownload) {
+        let downloadedVideos = await downloadVideos(videosToDownload, downloadLocation);
+
+        downloadedVideos.forEach(video => {
+            console.log(video);
+            let videoCode = `<video controls><source src="./${video.name}" type="video/${video.extension}"></video>`;
+
+            post.html = post.html.split(video.embeddedCode).join(videoCode);
+        });
+    }
 
     // Will receive a list of objects for all the images to be downloaded, or null if there are no images
     let imagesToDownload = await findImages(post.html);
@@ -57,7 +69,7 @@ async function findImages(html) {
     // Parse the image tags to create an object containing the image's URL and filename + extension
     let imagesToDownload = await imageTags.map(tag => {
         // Use regex to extract the url from the image tag
-        let url = tag.match(/(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/g)[0];
+        let url = tag.match(/(http|ftp|https):\/\/([\w_-]+(?:(?:\.?[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/g)[0];
         return {
             url: url,
             name: url.match(/[^/\\&\?]+\.\w{3,4}(?=([\?&].*$|$))/g)[0]
@@ -92,4 +104,64 @@ async function downloadImages(imagesToDownload, downloadLocation) {
     // return the array of downloaded image objects
     return imagesToDownload;
 
+}
+
+async function findVideos(html) {
+    let embeds = html.match(/(<!--kg-card-begin: embed).*?(kg-card-end: embed-->)/g);
+
+    if (!embeds){
+        return null;
+    }
+
+    embeds = embeds.filter(embeddedCode => {
+        return embeddedCode.includes("youtube");
+    });
+
+    let videosToDownload = await embeds.map(embeddedCode => {
+        // Use regex to extract the url from the embedded code
+        let url = embeddedCode.match(/(http|ftp|https):\/\/([\w_-]+(?:(?:\.?[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/g)[0];
+        return {
+            url: url,
+            embeddedCode: embeddedCode
+        }
+    });
+
+    return [...new Set(videosToDownload)];
+}
+
+async function downloadVideos(videosToDownload, downloadLocation){
+    for (let video in videosToDownload){
+        video = videosToDownload[video];
+
+        let videoData = await fetch('http://localhost:5000/mediadownloader-27028/us-central1/getVideoData', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                url: video.url
+            })
+        });
+
+        videoData = await videoData.json();
+
+        let fileName = `${videosToDownload.indexOf(video)}.${videoData.extension}`;
+        
+        let downloaded = await FileSystem.downloadAsync(videoData.url, downloadLocation + fileName).catch(err => {
+            console.error(err);
+        });
+
+        if (downloaded.uri){
+            console.log("VIDEO: ", video);
+            videosToDownload[videosToDownload.indexOf(video)] = {
+                uri: downloaded.uri,
+                name: fileName,
+                embeddedCode: video.embeddedCode,
+                extension: videoData.extension
+            }
+        }
+    }
+
+    return videosToDownload;
 }
