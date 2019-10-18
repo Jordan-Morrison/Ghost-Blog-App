@@ -1,4 +1,5 @@
 import * as FileSystem from 'expo-file-system';
+import ytdl from 'react-native-ytdl';
 
 export async function downloadPost(post) {
 
@@ -12,19 +13,23 @@ export async function downloadPost(post) {
 
     let videosToDownload = await findVideos(post.html);
 
+    // Will receive a list of objects for all the images to be downloaded, or null if there are no images
+    let imagesToDownload = await findImages(post.html);
+
     if (videosToDownload) {
         let downloadedVideos = await downloadVideos(videosToDownload, downloadLocation);
 
         downloadedVideos.forEach(video => {
-            console.log(video);
-            let videoCode = `<video controls><source src="./${video.name}" type="video/${video.extension}"></video>`;
+            let videoCode = `<video poster="${video.name + "_thumbnail.jpg"}" controls><source src="./${video.name}" type="video/${video.extension}"></video>`;
 
             post.html = post.html.split(video.embeddedCode).join(videoCode);
+
+            imagesToDownload.push({
+                name: video.name + "_thumbnail.jpg",
+                url: video.thumbnailURL
+            })
         });
     }
-
-    // Will receive a list of objects for all the images to be downloaded, or null if there are no images
-    let imagesToDownload = await findImages(post.html);
 
     if (imagesToDownload) {
         // Downloads the images and receives an array containing the image URI's and names
@@ -72,7 +77,8 @@ async function findImages(html) {
         let url = tag.match(/(http|ftp|https):\/\/([\w_-]+(?:(?:\.?[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?/g)[0];
         return {
             url: url,
-            name: url.match(/[^/\\&\?]+\.\w{3,4}(?=([\?&].*$|$))/g)[0]
+            // Set the filename with the image's index, then name and extenstion. Index prevents possible errors for files with the same name
+            name: imageTags.indexOf(tag) + "-" + url.match(/[^/\\&\?]+\.\w{3,4}(?=([\?&].*$|$))/g)[0]
         }
     });
 
@@ -87,17 +93,14 @@ async function downloadImages(imagesToDownload, downloadLocation) {
         // Create a variable to the curent image for easy access
         image = imagesToDownload[image];
 
-        // Set the filename with the image's index, then name and extenstion. Index prevents possible errors for files with the same name
-        let fileName = `${imagesToDownload.indexOf(image)}-${image.name}`;
         // Download the image, receives an object with the response
-        let downloaded = await FileSystem.downloadAsync(image.url, downloadLocation + fileName).catch(err => {
+        let downloaded = await FileSystem.downloadAsync(image.url, downloadLocation + image.name).catch(err => {
             console.error(err);
         });
         // If the image has a URI it has been succesfully downloaded and stored
         if (downloaded.uri){
             // Update the object with the new image path and filename
             imagesToDownload[imagesToDownload.indexOf(image)].uri = downloaded.uri;
-            imagesToDownload[imagesToDownload.indexOf(image)].name = fileName;
         }
     }
 
@@ -133,18 +136,13 @@ async function downloadVideos(videosToDownload, downloadLocation){
     for (let video in videosToDownload){
         video = videosToDownload[video];
 
-        let videoData = await fetch('http://localhost:5000/mediadownloader-27028/us-central1/getVideoData', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                url: video.url
-            })
-        });
-
-        videoData = await videoData.json();
+        let videoData = null;
+        try {
+            videoData = await getVideoData(video.url);
+        }
+        catch(err) {
+            throw new Error('Something went wrong.');
+        }
 
         let fileName = `${videosToDownload.indexOf(video)}.${videoData.extension}`;
         
@@ -158,10 +156,33 @@ async function downloadVideos(videosToDownload, downloadLocation){
                 uri: downloaded.uri,
                 name: fileName,
                 embeddedCode: video.embeddedCode,
-                extension: videoData.extension
+                extension: videoData.extension,
+                thumbnailURL: videoData.thumbnailURL
             }
         }
     }
 
     return videosToDownload;
+}
+
+function getVideoData(url) {
+    return new Promise((resolve, reject) => {
+        ytdl.getInfo(url, {}, (err, info) => {
+        let format = ytdl.chooseFormat(info.formats, {quality: 'highest'});
+
+        let videoData = {
+            url: format.url,
+            extension: format.container,
+            thumbnailURL: `https://img.youtube.com/vi/${ytdl.getURLVideoID(url)}/maxresdefault.jpg`
+        }
+
+        if(err) {
+            reject(err);
+        }
+        else {
+            resolve(videoData);
+        }
+
+        })
+    })
 }
