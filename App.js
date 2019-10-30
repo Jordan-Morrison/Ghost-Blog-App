@@ -51,7 +51,7 @@ const TabNavigator = createBottomTabNavigator({
         }
     }
 },{
-    initialRouteName: "Saved"
+    initialRouteName: "Home"
 });
 
 export default createAppContainer(TabNavigator);
