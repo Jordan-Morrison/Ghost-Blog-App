@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import moment from "moment";
 
 import {downloadPost} from './helpers/Downloader';
 
@@ -20,7 +21,7 @@ export default function Card(props) {
             </View>
             <Text style={styles.title}>{props.post.title}</Text>
             <Text style={styles.description}>{props.post.excerpt}</Text>
-            <Text style={styles.timeText}>6 days ago &bull; 2 min read</Text>
+            <Text style={styles.timeText}>{moment(props.post.published_at).fromNow()} &bull; 2 min read</Text>
         </View>
     </TouchableOpacity>
   );

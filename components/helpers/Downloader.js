@@ -65,7 +65,8 @@ export async function downloadPost(post) {
         primary_tag: post.primary_tag,
         excerpt: post.excerpt,
         url: post.url,
-        feature_image: downloadLocation + featuredImageName
+        feature_image: downloadLocation + featuredImageName,
+        published_at: post.published_at
     })).catch(err => {
         console.error(err);
     });
