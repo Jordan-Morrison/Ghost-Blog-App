@@ -7,7 +7,7 @@ import {downloadPost} from './helpers/Downloader';
 export default function Card(props) {
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => {props.navigation.navigate("Episode", {content: props.post.html, title: props.post.title})}}>
+    <TouchableOpacity style={styles.card} delayPressIn={50} onPress={props.navigate}>
         <View style={{borderTopRightRadius: 10, borderTopLeftRadius: 10, overflow: "hidden"}}>
         <Image style={styles.featuredImage} source={{uri: props.post.feature_image}}/>
         </View>

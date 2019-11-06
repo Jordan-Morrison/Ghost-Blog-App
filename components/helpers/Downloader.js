@@ -16,6 +16,18 @@ export async function downloadPost(post) {
     // Will receive a list of objects for all the images to be downloaded, or null if there are no images
     let imagesToDownload = await findImages(post.html);
 
+    if (post.feature_image){
+        var featuredImageName = await fetch(post.feature_image);
+        featuredImageName = "featuredImage." + featuredImageName.headers.get("content-type").split("/")[1];
+        if (!imagesToDownload){
+            imagesToDownload = [];
+        }
+        imagesToDownload.push({
+            name: featuredImageName,
+            url: post.feature_image
+        })
+    }
+
     if (videosToDownload) {
         let downloadedVideos = await downloadVideos(videosToDownload, downloadLocation);
 
@@ -50,8 +62,10 @@ export async function downloadPost(post) {
     FileSystem.writeAsStringAsync(downloadLocation + "post.json", JSON.stringify({
         uuid: post.uuid,
         title: post.title,
+        primary_tag: post.primary_tag,
         excerpt: post.excerpt,
-        url: post.url
+        url: post.url,
+        feature_image: downloadLocation + featuredImageName
     })).catch(err => {
         console.error(err);
     });
@@ -110,7 +124,7 @@ async function downloadImages(imagesToDownload, downloadLocation) {
 }
 
 async function findVideos(html) {
-    let embeds = html.match(/(<!--kg-card-begin: embed).*?(kg-card-end: embed-->)/g);
+    let embeds = html.match(/<figure[^>]*?kg-card[^"]*?kg-embed-card.*?<\/figure>|(<!--kg-card-begin: embed).*?(kg-card-end: embed-->)/g);
 
     if (!embeds){
         return null;

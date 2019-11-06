@@ -4,6 +4,8 @@ import { withNavigationFocus } from 'react-navigation';
 import Swipeout from 'react-native-swipeout';
 import * as FileSystem from 'expo-file-system';
 
+import Card from './Card';
+
 function Post(props) {
 
     const [posts, setPosts] = useState([]);
@@ -57,12 +59,7 @@ function Post(props) {
 
         return (
             <Swipeout autoClose={true} backgroundColor="none" right={swipeoutButtons}>
-                <TouchableOpacity style={styles.listItem} onPress={() => {viewLocalPost(post.data.uuid, post.data.title)}}>
-                    <View style={{display: "flex", flexDirection: "row", position: "relative"}}>
-                        <View style={{backgroundColor: "red", width: 20, height: "100%"}}/>
-                        <Text>{post.data.title}</Text>
-                    </View>
-                </TouchableOpacity>
+                <Card post={post.data} navigate={() => viewLocalPost(post.data.uuid, post.data.title)}/>
             </Swipeout>
         );
     }
@@ -77,23 +74,7 @@ function Post(props) {
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#fff',
-    },
-    listItem: {
-        borderRadius: 4,
-        borderRightWidth: 0,
-        borderLeftWidth: 0,
-        borderStartColor: "red",
-        borderWidth: 0.5,
-        borderColor: '#d6d7da',
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingVertical: 30
-    },
-    list: {
-        marginLeft: 0
+      backgroundColor: '#fff'
     }
   });
 
